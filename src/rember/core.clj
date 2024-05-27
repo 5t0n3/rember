@@ -1,6 +1,8 @@
 (ns rember.core
   (:require [ring.adapter.jetty :as jetty]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.session.memory :refer [memory-store]]
+            [clojure.core.match :refer [match]]
             [rember.database :as database]
             [rember.util :as util]
             [rember.auth :as auth]
@@ -9,22 +11,19 @@
 
 (defonce server (atom nil))
 
+; for some reason the default session store doesn't work??
+(defonce sessions (atom {}))
+
 (defn not-found [_req]
   {:status 404 :body "not found" :headers {}})
 
 (defn app [req]
-  (let [handler (case (:request-method req)
-                  :post (case (:uri req)
-                          "/register" (-> auth/register-handler
-                                          util/wrap-json-request
-                                          wrap-session)
-                          "/login" (-> auth/login
-                                       util/wrap-json-request wrap-session)
-                          not-found)
-                  :get (if (= (:uri req) "/stored")
-                         (wrap-session storage/list-stored)
-                         not-found)
-                  not-found)]
+  (let [store (memory-store sessions)
+        handler (match req
+                  {:request-method :post :uri "/register"} (-> auth/register-handler util/wrap-json-request (wrap-session {:store store}))
+                  {:request-method :post :uri "/login"} (-> auth/login util/wrap-json-request (wrap-session {:store store}))
+                  {:request-method :get :uri "/stored"} (wrap-session storage/list-stored {:store store})
+                  :else not-found)]
     (handler req)))
 
 (defn run-server []

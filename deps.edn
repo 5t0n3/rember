@@ -4,6 +4,7 @@
         cheshire/cheshire {:mvn/version "5.13.0"}
         io.github.camsaul/toucan2 {:mvn/version "1.0.539"}
         com.h2database/h2 {:mvn/version "2.2.224"}
-        caesium/caesium {:mvn/version "0.15.0"}}
+        caesium/caesium {:mvn/version "0.15.0"}
+        org.clojure/core.match {:mvn/version "1.1.0"}}
  :aliases {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.3" :git/sha "15ead6645ed01877f140fc1106d4fcae8966de04"}}
                    :ns-default build}}}

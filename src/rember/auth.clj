@@ -1,23 +1,20 @@
 (ns rember.auth
   (:require
-   ; web
+   [clojure.core.match :refer [match]]
    [ring.util.response :refer [response]]
-   ; database
    [toucan2.core :as t2]
-   ; password hashing
    [caesium.crypto.pwhash :as pwhash]))
 
 (defn login [req]
-  (let [{:keys [username pass]} (:json req)
-        valid-req (not (or (nil? username) (nil? pass)))]
-    (if
-     (not valid-req) {:status 400 :body "bad request" :headers {}}
-     (let [{pwhash :pwhash} (t2/select-one :models/users :username username)]
-       (if (or (nil? pwhash) (not= (pwhash/pwhash-str-verify pwhash pass) 0))
-         {:status 400 :body "login failed"}
-         (->
-          (response "ok")
-          (assoc :session {:username username})))))))
+  (match (:json req)
+    {:username username :pass passwd}
+    (if-let [{pwhash :pwhash} (t2/select-one :models/users :username username)]
+      (if (or (nil? pwhash) (not= (pwhash/pwhash-str-verify pwhash passwd) 0))
+        {:status 400 :body "login failed"}
+        (->
+         (response "ok")
+         (assoc :session {:username username}))))
+    :else {:status 400 :body "login failed"}))
 
 (defn create-account [username pass]
   (let [further-hash (pwhash/pwhash-str pass pwhash/opslimit-interactive pwhash/memlimit-interactive)]
