@@ -9,15 +9,17 @@
 (def basis (delay (b/create-basis {:project "deps.edn"})))
 
 (defn clean [_]
-  (b/delete {:path "target"}))
+  (b/delete {:path "target"})
+  (println "Deleted target/ directory"))
 
 (defn uberjar [_]
   (clean nil)
-  (b/copy-dir {:src-dirs ["src"] :target-dir class-dir})
   (b/compile-clj {:basis @basis
-                  :ns-compile '[rember.core]
+                  :src-dirs ["src"]
                   :class-dir class-dir})
+  (println "code compiled, assembling into uberjar...")
   (b/uber {:class-dir class-dir
            :uber-file uber-file
            :basis @basis
-           :main 'rember.core}))
+           :main 'rember.core})
+  (println (format "wrote uberjar to %s" uber-file)))
