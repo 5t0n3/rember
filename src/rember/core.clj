@@ -22,7 +22,9 @@
         handler (match req
                   {:request-method :post :uri "/register"} (-> auth/register-handler util/wrap-json-request (wrap-session {:store store}))
                   {:request-method :post :uri "/login"} (-> auth/login util/wrap-json-request (wrap-session {:store store}))
-                  {:request-method :get :uri "/stored"} (wrap-session storage/list-stored {:store store})
+                  {:request-method :get :uri "/entries"} (wrap-session storage/list-handler {:store store})
+                  {:request-method :post :uri "/entries"} (wrap-session storage/add-handler {:store store})
+                  {:request-method :delete :uri "/entries"} (wrap-session storage/delete-handler {:store store})
                   :else not-found)]
     (handler req)))
 
