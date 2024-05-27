@@ -9,8 +9,6 @@
             [rember.storage :as storage])
   (:gen-class))
 
-(defonce server (atom nil))
-
 ; for some reason the default session store doesn't work??
 (defonce sessions (atom {}))
 
@@ -28,7 +26,9 @@
                   :else not-found)]
     (handler req)))
 
-; repl testing functions
+; repl testing stuffs
+(defonce server (atom nil))
+
 (defn run-server []
   (reset! server
           (jetty/run-jetty (fn [req] (app req))
@@ -44,4 +44,4 @@
   "Runs rember server"
   []
   (database/create-tables!)
-  (run-server))
+  (jetty/run-jetty app {:port 3001}))
