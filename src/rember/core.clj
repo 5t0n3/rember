@@ -28,6 +28,7 @@
                   :else not-found)]
     (handler req)))
 
+; repl testing functions
 (defn run-server []
   (reset! server
           (jetty/run-jetty (fn [req] (app req))

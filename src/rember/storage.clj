@@ -24,8 +24,17 @@
         (bad-request "bad request")
         (let [{userid :id} (t2/select-one [:models/users :id] :username username)]
           (t2/insert! :models/userdata :userid userid :entry entry)
-          (response "ok"))))
+          {:status 201 :body "entry created" :headers {}})))
     {:status 401 :body "unauthorized" :headers {}}))
 
-(defn delete-handler [_req]
-  (response "delete endpoint"))
+(defn delete-handler [req]
+  (if-let [username (get-in req [:session :username])]
+    (let [entry (some-> req :body io/reader slurp)]
+      (if (blank? entry)
+        (bad-request "bad request")
+        (let [{userid :id} (t2/select-one [:models/users :id] :username username)
+              num-deleted (t2/delete! :models/userdata :entry entry :userid userid)]
+          (if (> num-deleted 0)
+            (response "entry deleted")
+            (bad-request "no such entry")))))
+    {:status 401 :body "unauthorized" :headers {}}))
