@@ -4,12 +4,12 @@
 
 (defn try-parse-json [stream]
   (try
-    (cc/parse-stream (io/reader stream))
+    (cc/parse-stream (io/reader stream) true)
     ; TODO: figure out how to catch specifically JsonParseException
-    (catch Throwable _e
+    (catch Exception _e
       nil)))
 
-(defn json-middleware [handler]
+(defn wrap-json-request [handler]
   (fn [req]
     (let [json-body (try-parse-json (:body req))
           updated-req (assoc req :json json-body)]

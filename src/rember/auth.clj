@@ -1,20 +1,14 @@
 (ns rember.auth
   (:require
-    ; web
+   ; web
    [ring.util.response :refer [response]]
-    ; database
+   ; database
    [toucan2.core :as t2]
    [methodical.core :as m]
-    ; password hashing
+   ; password hashing
    [caesium.crypto.pwhash :as pwhash]
    [cheshire.core :as cc]))
 
-(def db-spec
-  {:dbtype "h2" :dbname "rember.db"})
-
-(m/defmethod t2/do-with-connection :default
-  [_connectable f]
-  (t2/do-with-connection db-spec f))
 
 (defn create-session [])
 
@@ -27,19 +21,15 @@
 ; https://github.com/ring-clojure/ring/wiki/Sessions
 ; TODO: password? :P
 (defn register-handler [req]
-  (println "req json: " (:json req))
-  {:status 200 :body "register endpoint" :headers {}})
-
-; (defn register-handler [req]
-;   (let [username (get-in req [:json :username])
-;         exists (t2/exists? :models/users :username username)]
-;     (if (and username (not exists))
-;       (do
-;         (create-account username)
-;         (->
-;           (response "ok")
-;           (assoc :session {:username username})))
-;       {:status 400 :body "username taken" :headers {}})))
+  (let [username (get-in req [:json :username])]
+    (cond
+      (nil? username) {:status 400 :body "no username provided" :headers {}}
+      (t2/exists? :models/users :username username) {:status 400 :body "username taken" :headers {}}
+      :else (do
+              (create-account username)
+              (->
+               (response "ok")
+               (assoc :session {:username username}))))))
 
 ; (defn verify-pwhash [hash]
 ;   (pwhash/pwhash-str-verify))
